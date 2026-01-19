@@ -4,6 +4,7 @@ signal day_started
 signal night_started
 
 var world_state: WorldState
+var time_hud # Reference to TimeHUD
 
 @export var current_time_scale: float = 1.0
 
@@ -11,10 +12,16 @@ func _ready():
 	world_state = WorldState.new()
 	# Initialize default values if needed, though they are in Resource
 
+func register_hud(hud):
+	time_hud = hud
+
 func _process(delta):
 	if not world_state: return
 
 	world_state.accumulated_seconds += delta * current_time_scale
+
+	if time_hud and time_hud.has_method("update_time_label"):
+		time_hud.update_time_label(get_formatted_time())
 
 	var day_seconds = world_state.day_duration_minutes * 60.0
 	var night_seconds = world_state.night_duration_minutes * 60.0

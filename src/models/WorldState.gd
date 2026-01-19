@@ -6,6 +6,10 @@ class_name WorldState
 @export var day_duration_minutes: float = 8.0
 @export var night_duration_minutes: float = 4.0
 
+# Store transient or persistent entities for the current map
+# List of Dictionaries or CharacterData, depending on persistence needs
+@export var current_map_entities: Array = []
+
 func to_dictionary() -> Dictionary:
 	return {
 		"accumulated_seconds": accumulated_seconds,

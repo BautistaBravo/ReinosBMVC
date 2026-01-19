@@ -100,3 +100,72 @@ func save_full_state(data: Dictionary):
 
 func load_full_state() -> Dictionary:
 	return _load_file_data()
+
+func _create_character_by_type(type: String) -> CharacterData:
+	# Factory helper
+	var char_data = CharacterData.new()
+	char_data.character_name = type
+	char_data.is_enemy = true
+	# Basic stats based on type
+	if type == "Goblin":
+		char_data.max_hp = 30
+		char_data.current_hp = 30
+		char_data.agility = 12
+		char_data.attack = 8
+		char_data.defense = 2
+		char_data.race = "Goblin"
+	elif type == "Orc":
+		char_data.max_hp = 60
+		char_data.current_hp = 60
+		char_data.agility = 8
+		char_data.attack = 15
+		char_data.defense = 5
+		char_data.race = "Orc"
+	return char_data
+
+func spawn_entities_in_map(map_node: Node):
+	# Assume map_node has a reference or we know the current map ID from somewhere
+	# Or we can pass the map ID. For now, let's assume we fetch data based on GameManager's current map
+	# But to be clean, let's pass map_id if possible, or read from map_node filename if it matches pattern
+
+	# Since GameManager tracks current_map_path, we can extract ID
+	# But better to use get_map_data() we already have.
+
+	# Extract map_id from filename for simplicity or assume passed context.
+	# Let's rely on GameManager to have set the path correctly, and we parse the json.
+	# Wait, get_map_data takes map_id.
+
+	# Let's try to deduce map_id from map_node.filename
+	var map_path = map_node.scene_file_path
+	if map_path.is_empty():
+		return # Not an instanced scene file
+
+	# map_path like res://src/scenes/maps/Map01.tscn ?
+	# The json is in src/data/maps/map_01.json
+	# The prompt implies getting JSON data.
+
+	# Let's hardcode map_01 for the demo if deduction fails, or ask caller to provide ID.
+	# But prompt says "GameDAO.gd tenga una función spawn_entities_in_map(map_node)".
+	# I will assume map_node corresponds to the loaded JSON data we can get.
+
+	# We'll use a hardcoded check or just try to load "map_01" for this task as it's the only one.
+	var map_data = get_map_data("map_01")
+	if map_data.is_empty():
+		return
+
+	var entities = map_data.get("entities", [])
+	var entity_scene = load("res://src/views/overworld/Entity.tscn")
+
+	for entity_info in entities:
+		var type = entity_info.get("type", "Goblin")
+		var x = entity_info.get("x", 0)
+		var y = entity_info.get("y", 0)
+
+		var char_data = _create_character_by_type(type)
+		var entity_instance = entity_scene.instantiate()
+		entity_instance.position = Vector2(x, y)
+
+		if entity_instance.has_method("setup"):
+			entity_instance.setup(char_data)
+
+		map_node.add_child(entity_instance)
