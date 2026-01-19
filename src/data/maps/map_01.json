@@ -1,0 +1,16 @@
+{
+    "environment_name": "Grassy Plains",
+    "terrain_path": "res://src/scenes/terrains/Grassland.tscn",
+    "entities": [
+        {
+            "type": "Goblin",
+            "x": 400,
+            "y": 200
+        },
+        {
+            "type": "Goblin",
+            "x": 600,
+            "y": 300
+        }
+    ]
+}

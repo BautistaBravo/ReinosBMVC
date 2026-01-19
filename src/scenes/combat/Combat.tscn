@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/scenes/combat/Combat.gd" id="1"]
+[ext_resource type="PackedScene" path="res://src/scenes/combat/Combatant.tscn" id="2"]
+
+[node name="Combat" type="Node2D"]
+script = ExtResource("1")
+combatant_scene = ExtResource("2")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="CommandLabel" type="Label" parent="UI"]
+offset_left = 500.0
+offset_top = 500.0
+offset_right = 700.0
+offset_bottom = 600.0
+text = "Commands"
