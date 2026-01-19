@@ -3,37 +3,42 @@ extends Node
 signal day_started
 signal night_started
 
-@export var day_duration_minutes: float = 8.0
-@export var night_duration_minutes: float = 4.0
+var world_state: WorldState
+
 @export var current_time_scale: float = 1.0
 
-var accumulated_seconds: float = 0.0
-var is_day: bool = true
+func _ready():
+	world_state = WorldState.new()
+	# Initialize default values if needed, though they are in Resource
 
 func _process(delta):
-	accumulated_seconds += delta * current_time_scale
+	if not world_state: return
 
-	var day_seconds = day_duration_minutes * 60.0
-	var night_seconds = night_duration_minutes * 60.0
+	world_state.accumulated_seconds += delta * current_time_scale
+
+	var day_seconds = world_state.day_duration_minutes * 60.0
+	var night_seconds = world_state.night_duration_minutes * 60.0
 	var cycle_duration = day_seconds + night_seconds
 
-	var current_cycle_time = fmod(accumulated_seconds, cycle_duration)
+	var current_cycle_time = fmod(world_state.accumulated_seconds, cycle_duration)
 
 	if current_cycle_time < day_seconds:
-		if not is_day:
-			is_day = true
+		if not world_state.is_day:
+			world_state.is_day = true
 			emit_signal("day_started")
 	else:
-		if is_day:
-			is_day = false
+		if world_state.is_day:
+			world_state.is_day = false
 			emit_signal("night_started")
 
 func get_game_time_hours() -> float:
-	var day_seconds = day_duration_minutes * 60.0
-	var night_seconds = night_duration_minutes * 60.0
+	if not world_state: return 0.0
+
+	var day_seconds = world_state.day_duration_minutes * 60.0
+	var night_seconds = world_state.night_duration_minutes * 60.0
 	var cycle_duration = day_seconds + night_seconds
 
-	var current_cycle_time = fmod(accumulated_seconds, cycle_duration)
+	var current_cycle_time = fmod(world_state.accumulated_seconds, cycle_duration)
 
 	var game_hour = 0.0
 
@@ -51,8 +56,9 @@ func get_game_time_hours() -> float:
 	return game_hour
 
 func get_day_number() -> int:
-	var cycle_duration = (day_duration_minutes + night_duration_minutes) * 60.0
-	return int(accumulated_seconds / cycle_duration) + 1
+	if not world_state: return 1
+	var cycle_duration = (world_state.day_duration_minutes + world_state.night_duration_minutes) * 60.0
+	return int(world_state.accumulated_seconds / cycle_duration) + 1
 
 func get_formatted_time() -> String:
 	var hours = get_game_time_hours()
@@ -64,11 +70,10 @@ func set_time_scale(scale: float):
 	current_time_scale = scale
 
 func get_save_data() -> Dictionary:
-	return {
-		"accumulated_seconds": accumulated_seconds,
-		"is_day": is_day
-	}
+	if world_state:
+		return world_state.to_dictionary()
+	return {}
 
 func load_save_data(data: Dictionary):
-	accumulated_seconds = data.get("accumulated_seconds", 0.0)
-	is_day = data.get("is_day", true)
+	if world_state:
+		world_state.from_dictionary(data)
