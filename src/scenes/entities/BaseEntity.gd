@@ -2,6 +2,7 @@ extends Area2D
 
 @export var entity_name: String = "Goblin"
 @export var is_enemy: bool = true
+@export var loot_table: Resource
 var party: Array = []
 
 func _ready():
@@ -31,6 +32,6 @@ func _on_mouse_exited():
 func interact():
 	if is_enemy:
 		print("Starting combat with " + entity_name)
-		GameManager.start_combat(party)
+		GameManager.start_combat(party, loot_table)
 	else:
 		print("Hello traveler!")

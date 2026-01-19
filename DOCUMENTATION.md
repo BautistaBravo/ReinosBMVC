@@ -29,7 +29,7 @@ Manages the in-game time cycle (day/night) and time scaling.
 
 ## src/autoload/GameManager.gd
 
-Central manager for game state, including party management, scene transitions, and save/load functionality.
+Central manager for game state, including party management, scene transitions, save/load functionality, and now loot tracking.
 
 * **`_ready()`**
   Called when the node enters the scene tree. Currently empty.
@@ -37,20 +37,39 @@ Central manager for game state, including party management, scene transitions, a
 * **`start_new_game()`**
   Initializes a new game session. Resets the player party with default characters, resets time scale, and changes the scene to the Overworld.
 
-* **`start_combat(enemy_party: Array)`**
-  Transitions the game to the Combat scene. Sets the current enemy party and slows down time.
+* **`start_combat(enemy_party: Array, loot_table: Resource = null)`**
+  Transitions the game to the Combat scene. Sets the current enemy party and optional loot table, and slows down time.
 
 * **`return_to_overworld()`**
-  Transitions the game back to the Overworld scene. Clears the enemy party and restores normal time scale.
+  Transitions the game back to the Overworld scene. Clears the enemy party/loot table and restores normal time scale.
 
 * **`save_game()`**
-  Serializes the current game state (map, time, party) to `user://savegame.json`.
+  Serializes the current game state (map, time, party, inventory) to `user://savegame.json`.
 
 * **`load_game()`**
   Loads the game state from `user://savegame.json`. If no save exists, starts a new game.
 
 * **`apply_save_data(data: Dictionary)`**
-  Parses a save data dictionary and restores the game state (map, time, party members).
+  Parses a save data dictionary and restores the game state (map, time, party members, inventory).
+
+## src/autoload/InventoryManager.gd
+
+Global manager for the player's inventory system.
+
+* **`add_item(item: ItemData, quantity: int = 1)`**
+  Adds a specified quantity of an item to the inventory. Stacks existing items.
+
+* **`remove_item(item: ItemData, quantity: int = 1) -> bool`**
+  Removes a specified quantity of an item. Returns `true` if successful, `false` if not enough items.
+
+* **`has_item(item: ItemData, quantity: int = 1) -> bool`**
+  Checks if the inventory contains at least the specified quantity of an item.
+
+* **`get_save_data() -> Array`**
+  Returns the inventory state (item paths and quantities) as an array for saving.
+
+* **`load_save_data(data: Array)`**
+  Restores the inventory state from saved data.
 
 ## src/scripts/CharacterData.gd
 
@@ -73,6 +92,27 @@ A resource class (Data Model) representing a character's stats and state.
 
 * **`from_dictionary(data: Dictionary) -> CharacterData`**
   Static method that creates a new `CharacterData` instance from a dictionary.
+
+## src/scripts/ItemData.gd
+
+Resource class defining an item's properties.
+
+* **`ItemType` (Enum)**
+  Enumeration of item types: `CONSUMABLE`, `EQUIPMENT`, `KEY_ITEM`, `MATERIAL`.
+
+## src/scripts/LootTable.gd
+
+Resource class for defining loot drops.
+
+* **`roll_loot() -> Array`**
+  Calculates and returns a list of items dropped based on their probabilities.
+
+## src/scripts/TestInventory.gd
+
+A test script to verify inventory and loot functionality.
+
+* **`_ready()`**
+  Runs a series of tests on `InventoryManager` and `LootTable` and prints results to the console.
 
 ## src/scenes/main_menu/MainMenu.gd
 
@@ -98,7 +138,7 @@ Script for interactive entities in the world (e.g., NPCs, enemies).
   Callback when mouse leaves the entity. Signals the UI to hide the tooltip.
 
 * **`interact()`**
-  Called when the player interacts with the entity. Starts combat if the entity is an enemy, otherwise prints a greeting.
+  Called when the player interacts with the entity. Starts combat (passing the loot table) if the entity is an enemy, otherwise prints a greeting.
 
 ## src/scenes/ui/PauseMenu.gd
 
@@ -151,7 +191,7 @@ Manages the combat flow, turns, and actions.
   Completes a combatant's turn, removing them from the ready list and checking for battle end.
 
 * **`check_battle_end()`**
-  Checks if either side has been wiped out. Ends combat if so.
+  Checks if either side has been wiped out. Ends combat if so. On victory, rolls for loot and adds rewards to the inventory.
 
 ## src/scenes/combat/Combatant.gd
 
@@ -174,16 +214,25 @@ Script for an individual character in combat.
 
 ## src/scenes/overworld/OverworldUI.gd
 
-Manages the UI overlay in the overworld.
+Manages the UI overlay in the overworld, including the new Inventory UI.
 
 * **`_ready()`**
-  Initializes UI elements, hiding panels by default.
+  Initializes UI elements, hides panels, and sets up the inventory UI.
+
+* **`setup_inventory_ui()`**
+  Creates the inventory panel and grid container programmatically.
 
 * **`_input(event)`**
-  Listens for key presses to toggle menus (Tab for Party, ESC for Pause).
+  Listens for key presses (Tab for Party, 'I' for Inventory, ESC for Pause).
 
 * **`toggle_party_menu()`**
   Toggles the visibility of the party stats panel.
+
+* **`toggle_inventory()`**
+  Toggles the visibility of the inventory panel and updates its display.
+
+* **`update_inventory_display()`**
+  Refreshes the inventory grid with current items from `InventoryManager`.
 
 * **`toggle_pause_menu()`**
   Toggles the visibility of the pause menu.

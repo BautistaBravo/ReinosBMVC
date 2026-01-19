@@ -2,6 +2,7 @@ extends Node
 
 var player_party: Array = [] # Array[CharacterData]
 var current_enemy_party: Array = [] # Array[CharacterData]
+var current_loot_table: Resource = null
 var current_map_path: String = "res://src/data/maps/map_01.json"
 
 const MAIN_MENU_SCENE = "res://src/scenes/main_menu/MainMenu.tscn"
@@ -22,13 +23,15 @@ func start_new_game():
 	TimeManager.set_time_scale(1.0)
 	get_tree().change_scene_to_file(OVERWORLD_SCENE)
 
-func start_combat(enemy_party: Array):
+func start_combat(enemy_party: Array, loot_table: Resource = null):
 	current_enemy_party = enemy_party
+	current_loot_table = loot_table
 	TimeManager.set_time_scale(0.5)
 	get_tree().change_scene_to_file(COMBAT_SCENE)
 
 func return_to_overworld():
 	current_enemy_party.clear()
+	current_loot_table = null
 	TimeManager.set_time_scale(1.0)
 	get_tree().change_scene_to_file(OVERWORLD_SCENE)
 
@@ -36,6 +39,7 @@ func save_game():
 	var save_data = {
 		"current_map_path": current_map_path,
 		"time_data": TimeManager.get_save_data(),
+		"inventory": InventoryManager.get_save_data(),
 		"player_party": []
 	}
 
@@ -72,6 +76,9 @@ func apply_save_data(data: Dictionary):
 
 	if data.has("time_data"):
 		TimeManager.load_save_data(data["time_data"])
+
+	if data.has("inventory"):
+		InventoryManager.load_save_data(data["inventory"])
 
 	player_party.clear()
 	if data.has("player_party"):
