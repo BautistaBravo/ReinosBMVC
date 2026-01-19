@@ -18,7 +18,8 @@ config/icon="res://icon.svg"
 [autoload]
 
 GameManager="*res://src/autoload/GameManager.gd"
-TimeManager="*res://src/autoload/TimeManager.tscn"
+TimeManager="*res://src/controllers/TimeController.gd"
+GameDAO="*res://src/dao/GameDAO.gd"
 
 [display]
 

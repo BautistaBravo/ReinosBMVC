@@ -42,30 +42,17 @@ func save_game():
 	for member in player_party:
 		save_data["player_party"].append(member.to_dictionary())
 
-	var file = FileAccess.open("user://savegame.json", FileAccess.WRITE)
-	if file:
-		file.store_string(JSON.stringify(save_data))
-		print("Game saved to user://savegame.json")
-	else:
-		printerr("Failed to save game")
+	GameDAO.save_full_state(save_data)
+	print("Game saved.")
 
 func load_game():
-	if not FileAccess.file_exists("user://savegame.json"):
-		print("No save file found. Starting new game.")
+	var data = GameDAO.load_full_state()
+	if data.is_empty():
+		print("No save file found or empty. Starting new game.")
 		start_new_game()
 		return
 
-	var file = FileAccess.open("user://savegame.json", FileAccess.READ)
-	var content = file.get_as_text()
-	var json = JSON.new()
-	var error = json.parse(content)
-
-	if error == OK:
-		var data = json.data
-		apply_save_data(data)
-	else:
-		printerr("JSON Parse Error: ", json.get_error_message())
-		start_new_game()
+	apply_save_data(data)
 
 func apply_save_data(data: Dictionary):
 	current_map_path = data.get("current_map_path", "res://src/data/maps/map_01.json")

@@ -63,6 +63,10 @@ func _level_up():
 	emit_signal("leveled_up", level)
 	print("%s leveled up to %d!" % [character_name, level])
 
+func calculate_damage_to(target: CharacterData) -> int:
+	var damage = max(1, attack - (target.defense / 2))
+	return int(damage)
+
 func to_dictionary() -> Dictionary:
 	return {
 		"character_name": character_name,
