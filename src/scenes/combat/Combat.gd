@@ -146,6 +146,15 @@ func check_battle_end():
 
 	if enemies_alive == 0:
 		print("Victory!")
+
+		if GameManager.current_loot_table:
+			var drops = GameManager.current_loot_table.roll_loot()
+			if drops.size() > 0:
+				print("Loot obtained:")
+				for item in drops:
+					InventoryManager.add_item(item)
+					print("- " + item.item_name)
+
 		GameManager.return_to_overworld()
 	elif players_alive == 0:
 		print("Defeat!")
