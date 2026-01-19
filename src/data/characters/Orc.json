@@ -1,0 +1,10 @@
+{
+    "character_name": "Orc",
+    "is_enemy": true,
+    "max_hp": 60,
+    "current_hp": 60,
+    "agility": 8,
+    "attack": 15,
+    "defense": 5,
+    "race": "Orc"
+}

@@ -102,55 +102,66 @@ func load_full_state() -> Dictionary:
 	return _load_file_data()
 
 func _create_character_by_type(type: String) -> CharacterData:
-	# Factory helper
-	var char_data = CharacterData.new()
-	char_data.character_name = type
-	char_data.is_enemy = true
-	# Basic stats based on type
-	if type == "Goblin":
-		char_data.max_hp = 30
-		char_data.current_hp = 30
-		char_data.agility = 12
-		char_data.attack = 8
-		char_data.defense = 2
-		char_data.race = "Goblin"
-	elif type == "Orc":
-		char_data.max_hp = 60
-		char_data.current_hp = 60
-		char_data.agility = 8
-		char_data.attack = 15
-		char_data.defense = 5
-		char_data.race = "Orc"
+	# Data-driven factory
+	var path = "res://src/data/characters/%s.json" % type
+
+	if not FileAccess.file_exists(path):
+		printerr("Character type definition not found: ", path)
+		# Return a default fallback to prevent crashes, or null
+		var fallback = CharacterData.new()
+		fallback.character_name = type
+		return fallback
+
+	var file = FileAccess.open(path, FileAccess.READ)
+	if not file:
+		printerr("Failed to open character file: ", path)
+		return CharacterData.new()
+
+	var json_string = file.get_as_text()
+	file.close()
+
+	var json = JSON.new()
+	var error = json.parse(json_string)
+	if error != OK:
+		printerr("JSON Parse Error for character ", type, ": ", json.get_error_message())
+		return CharacterData.new()
+
+	var data = json.get_data()
+	if typeof(data) != TYPE_DICTIONARY:
+		printerr("Character data is not a dictionary: ", path)
+		return CharacterData.new()
+
+	# Create CharacterData from dictionary
+	# Note: CharacterData.from_dictionary is a static method we implemented
+	var char_data = CharacterData.from_dictionary(data)
 	return char_data
 
 func spawn_entities_in_map(map_node: Node):
-	# Assume map_node has a reference or we know the current map ID from somewhere
-	# Or we can pass the map ID. For now, let's assume we fetch data based on GameManager's current map
-	# But to be clean, let's pass map_id if possible, or read from map_node filename if it matches pattern
+	# Use GameManager's current map path to fetch data
+	var map_path = GameManager.current_map_path
 
-	# Since GameManager tracks current_map_path, we can extract ID
-	# But better to use get_map_data() we already have.
+	if not FileAccess.file_exists(map_path):
+		printerr("Map data file not found: ", map_path)
+		return
 
-	# Extract map_id from filename for simplicity or assume passed context.
-	# Let's rely on GameManager to have set the path correctly, and we parse the json.
-	# Wait, get_map_data takes map_id.
+	# Reuse get_map_data if possible, but it expects an ID.
+	# We can just load the file directly since we have the full path.
+	var file = FileAccess.open(map_path, FileAccess.READ)
+	if not file:
+		printerr("Failed to open map data: ", map_path)
+		return
 
-	# Let's try to deduce map_id from map_node.filename
-	var map_path = map_node.scene_file_path
-	if map_path.is_empty():
-		return # Not an instanced scene file
+	var json_string = file.get_as_text()
+	file.close()
 
-	# map_path like res://src/scenes/maps/Map01.tscn ?
-	# The json is in src/data/maps/map_01.json
-	# The prompt implies getting JSON data.
+	var json = JSON.new()
+	var error = json.parse(json_string)
+	if error != OK:
+		printerr("JSON Parse Error in map data: ", json.get_error_message())
+		return
 
-	# Let's hardcode map_01 for the demo if deduction fails, or ask caller to provide ID.
-	# But prompt says "GameDAO.gd tenga una función spawn_entities_in_map(map_node)".
-	# I will assume map_node corresponds to the loaded JSON data we can get.
-
-	# We'll use a hardcoded check or just try to load "map_01" for this task as it's the only one.
-	var map_data = get_map_data("map_01")
-	if map_data.is_empty():
+	var map_data = json.get_data()
+	if typeof(map_data) != TYPE_DICTIONARY:
 		return
 
 	var entities = map_data.get("entities", [])
