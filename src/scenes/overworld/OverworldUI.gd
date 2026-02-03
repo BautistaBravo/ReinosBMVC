@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+const TOOLTIP_OFFSET = Vector2(15, 15)
+
 @onready var tooltip_label = $TooltipPanel/Label
 @onready var tooltip_panel = $TooltipPanel
 @onready var party_panel = $PartyPanel
@@ -50,7 +52,7 @@ func hide_tooltip():
 
 func _process(delta):
 	if tooltip_panel.visible:
-		tooltip_panel.position = get_viewport().get_mouse_position() + Vector2(15, 15)
+		tooltip_panel.position = get_viewport().get_mouse_position() + TOOLTIP_OFFSET
 
 	update_time_ui()
 
