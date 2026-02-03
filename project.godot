@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 GameManager="*res://src/autoload/GameManager.gd"
 TimeManager="*res://src/autoload/TimeManager.tscn"
+InventoryManager="*res://src/autoload/InventoryManager.gd"
 
 [display]
 
