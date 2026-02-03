@@ -105,14 +105,15 @@ func perform_enemy_turn(enemy):
 func perform_attack(attacker):
 	ui_layer.visible = false
 	# Nearest enemy
-	var enemies = combatants.filter(func(x): return x.data.is_enemy and x.data.current_hp > 0)
 	var nearest = null
 	var min_dist = INF
-	for e in enemies:
-		var d = attacker.position.distance_to(e.position)
-		if d < min_dist:
-			min_dist = d
-			nearest = e
+
+	for c in combatants:
+		if c.data.is_enemy and c.data.current_hp > 0:
+			var d = attacker.position.distance_to(c.position)
+			if d < min_dist:
+				min_dist = d
+				nearest = c
 
 	if nearest:
 		await attacker.attack_target(nearest)
